@@ -1,5 +1,5 @@
 /**
- * @author <<write here your name>> 
+ * @author Alejandro Garau Madrigal
  * 
  * Maxiphobic Heaps
  * Data Structures, Grado en Informática. UMA.
@@ -27,51 +27,57 @@ public class MaxiphobicHeap<T extends Comparable<? super T>> implements	Heap<T> 
 	}
 
 	private static <T extends Comparable<? super T>> Tree<T> merge(Tree<T> h1,	Tree<T> h2) {
-	    /*int max = 0;
-		if (h1 == null)
-		    return h2;
-		else if (h2 == null)
-		    return h1;
-		else if (h1.elem.compareTo(h2.elem) <= 0)
-            max = Math.max(Math.max(h1.right.weight, h1.left.weight), h2.weight);
-		    if (h1.left.weight == max) return node(h1.elem, h1.left, merge(h1.right, h2));
-		    if (h1.right.weight == max) return node(h1.elem, h1.right, merge(h1.left, h2));
-		    if (h2.weight == max) return node(h1.elem, h2, merge(h1.left, h2.right));
-        */
         if (h1 == null)
             return h2;
         if (h2 == null)
             return h1;
-        if(h2.elem.compareTo(h1.elem) < 0) {
+
+        if(h1.elem.compareTo(h2.elem) > 0) {
             Tree<T> aux = h1;
             h1 = h2;
             h2 = aux;
         }
-        if (h1.left != null && h1.right != null) {
-            int max = Math.max(Math.max(h1.left.weight, h1.right.weight), h2.weight);
-            if(h1.right.weight == max){
-                Tree<T> aux = h1.left;
-                h1.left = h1.right;
-                h1.right = aux;
-            }
-            else if(h2.weight == max){
-                Tree<T> aux = h1.left;
-                h1.left = h2;
-                h2 = aux;
-            }
-            h1.right = merge(h1.left, h2);
-            h1.weight = h1.left.weight + h1.right.weight + 1;
-        } else {
-            // TODO Arreglar
-            h1.left = h2;
+        /*Tree<T> ret = new Tree<>();
+        Tupla<T> tup = node(h1.left, h1.right, h2);
+        ret.elem = h1.elem;
+        ret.left = tup.h;
+        ret.right = merge(tup.lh, tup.rh);
+        ret.weight = weight(h1) + weight(h2);
+        return ret;*/
+        Tree<T> tree = new Tree<>();
+        tree.elem = h1.elem;
+		// int max = Math.max(Math.max(weight(h1.left), weight(h1.right)), weight(h2));
+		int wh1l = weight(h1.left);
+		int wh1r = weight(h1.right);
+		int wh2  = weight(h2);
+        if(wh2 >= wh1l && wh2 >= wh1r){
+            tree.weight = weight(h2) + 1;
+            tree.left = h2;
+            tree.right = merge(h1.left, h1.right);
+        } else if (wh1l >= wh2 && wh1l >= wh1r){
+            tree.weight = weight(h1.left) + 1;
+            tree.left = h1.left;
+            tree.right = merge(h1.right, h2);
         }
-        return h1;
+        else{
+			tree.weight = weight(h1.right) + 1;
+			tree.left = h1.right;
+			tree.right = merge(h1.left, h2);
+		}
+		/*COMPROBAR QUE SEA ZURDO*/
+		if(weight(tree.right) > weight(tree.left)){
+            Tree<T> aux = tree.left;
+            tree.left = tree.right;
+            tree.right = aux;
+        }
+
+        return tree;
 	}
 
     protected Tree<T> root;
 
 	/**
-	 * Constructor: creates an empty Maxiphobic Heap. 
+	 * Constructor: creates an empty Maxiphobic Heap.
 	 * <p>Time complexity: O(1)
 	 */
 	public MaxiphobicHeap() {
@@ -86,7 +92,6 @@ public class MaxiphobicHeap<T extends Comparable<? super T>> implements	Heap<T> 
 	}
 
     /**
-     *
      * @return size
      * <p>Time complexity: O(1)
      */
@@ -121,6 +126,8 @@ public class MaxiphobicHeap<T extends Comparable<? super T>> implements	Heap<T> 
 	public void insert(T value) {
 		Tree<T> item = new Tree<>();
 		item.elem = value;
+		item.weight = 1;
+		item.right = item.left = null;
 		root = merge(item, root);
 	}
 

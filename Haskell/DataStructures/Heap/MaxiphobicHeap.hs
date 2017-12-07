@@ -57,12 +57,11 @@ merge :: (Ord a) => Heap a -> Heap a -> Heap a
 merge Empty h'  = h'
 merge h Empty   = h
 merge h@(Node x w lh rh) h'@(Node x' w' lh' rh')
-    | x <= x'   = Node x s h1 (merge h2 h3)
-    | otherwise = Node x' s h1' (merge h2' h3')
+    | x <= x'   = check (Node x s h1 (merge h2 h3))
+    | otherwise = check (Node x' s' h1' (merge h2' h3'))
         where
-            (h1, h2, h3) = node x lh rh h'
-            (h1', h2', h3') = node x' lh' rh' h
-            s = w + w'
+            (h1, h2, h3, s) = node lh rh h'
+            (h1', h2', h3', s') = node lh' rh' h
 
 -- Efficient O(n) bottom-up construction for heaps
 mkHeap :: (Ord a) => [a] -> Heap a
@@ -76,20 +75,25 @@ mkHeap xs  = mergeLoop (map singleton xs)
     mergePairs [h]        = [h]
     mergePairs (h:h':hs)  = merge h h' : mergePairs hs
 
--- check :: Heap a -> Heap a
 --------------------------------------------------------------------------------
 -- Private definitions ---------------------------------------------------------
 --------------------------------------------------------------------------------
-node :: a -> Heap a -> Heap a -> Heap a -> (Heap a, Heap a, Heap a)
-node x lh rh h
-    | m == wh = (h, rh, lh)
-    | m == wl = (lh, rh, h)
-    | m == wr = (rh, lh, h)
+node :: Heap a -> Heap a -> Heap a -> (Heap a, Heap a, Heap a, Int)
+node lh rh h
+    | wh >= wrh && wrh >= wlh = (h, rh, lh, wh+1)
+    | wlh >= wrh && wrh >= wh = (lh, rh, h, wlh+1)
+    | otherwise               = (rh, lh, h, wrh+1)
         where
-            wl = weight lh
-            wr = weight rh
+            wlh = weight lh
+            wrh = weight rh
             wh = weight h
-            m = max (max wl wr) wh
+
+check :: Heap a -> Heap a
+check Empty = Empty
+check (Node x w lh rh) = if wl < wr then (Node x w rh lh) else (Node x w lh rh)
+    where
+        wl = weight lh
+        wr = weight rh
 
 --------------------------------------------------------------------------------
 -- Generating arbritray Heaps --------------------------------------------------
@@ -99,3 +103,9 @@ instance (Ord a, Arbitrary a) => Arbitrary (Heap a) where
   arbitrary  = do
     xs <- arbitrary
     return (mkHeap xs)
+
+a :: Heap Int
+a = (Node 5 2) ((Node 6 0) Empty Empty) ((Node 7 0) Empty Empty)
+
+b :: Heap Int
+b = (Node 8 2) (Node 10 0 Empty Empty) (Node 15 0 Empty Empty)

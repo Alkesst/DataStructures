@@ -3,7 +3,7 @@ package dataStructures.MaxiphobicHeap;
 public class MaxiphobicMain {
     public static void main(String[] args) {
         MaxiphobicHeap<Integer> t = new MaxiphobicHeap<Integer>();
-        insertAll(t, 5,7,3,7,8,10,15,2,11,1);
+        insertAll(t, 4, 3, 5, 8);
         System.out.println(t.toString());
     }
 
