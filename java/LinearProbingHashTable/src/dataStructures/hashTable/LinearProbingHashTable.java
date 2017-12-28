@@ -1,23 +1,25 @@
 /**
- * @author Alejandro Garau Madrigal
- * @group Software Engineering group A
+ * ALUMNO: Alejandro Garau Madrigal
+ * GRUPO: Software Engineering groupa A
  *
  * Hash Table with linear probing to resolve collisions
  */
 
+package dataStructures.hashTable;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import dataStructures.tuple.Tuple2;
 
 /**
  * Hash tables whose entries are associations of different keys to values
  * implemented using open addressing (linear probing). Note that keys should 
- * define {@link Object#hashCode} method properly.
+ * define {@link java.lang.Object#hashCode} method properly.
  *
  * @param <K> Type of keys.
  * @param <V> Types of values.
- */
-public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
+ */public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	
 	private K keys[];
 	private V values[];
@@ -40,6 +42,7 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	
 	/** 
 	 * True if table stores no associations
+     *
 	 */
 	public boolean isEmpty() {
 		return size==0;
@@ -63,21 +66,21 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	 * Returns current load factor
 	 */
 	private double loadFactor() {
-		return (double) size / (double) keys.length;
+		return (double)size / (double) keys.length;
 	}
 	
 	
 	/** 
 	 * Takes key of association and returns
 	 * its insertion position in the table.
-     * (Collisions must be resolved using linear probing algorithm)
+     * Collisions must be resolved using linear probing algorithm)
 	 */
-	private int searchIdx(K key) {
-        int i = this.hash(key);
-        while(!key.equals(keys[i]) && keys[i] != null){
-            i = (i + 1) % keys.length;
+    private int searchIdx(K key) {
+		int idx = hash(key);
+		while(keys[idx] != null && !keys[idx].equals(key)){
+		    idx = (idx + 1) % keys.length;
         }
-        return i;
+        return idx;
 	}
 
 	/** 
@@ -85,8 +88,7 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	 * association does not exist
 	 */
 	public V search(K key) {
-        int idx = searchIdx(key);
-        return this.values[idx];
+		return values[searchIdx(key)];
 	}
 	
 	/** 
@@ -94,8 +96,7 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	 * association does not exist
 	 */
 	public boolean isElem(K key) {
-		int idx = searchIdx(key);
-		return key.equals(keys[idx]);
+		return keys[searchIdx(key)] != null;
 	}		
 	
 	/** 
@@ -103,37 +104,40 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	 * present in table, associated value is modified.
 	 */
 	public void insert(K key, V value) {
-		if(loadFactor()>maxLoadFactor)
+		if(loadFactor() > maxLoadFactor)
 			rehashing();
 		int idx = searchIdx(key);
-		keys[idx] = key;
-		values[idx] = value;
+        if (keys[idx] == null) {
+            keys[idx] = key;
+            values[idx] = value;
+			this.size++;
+        } else if (keys[idx] != null && keys[idx].equals(key)){
+		    values[idx] = value;
+        }
 	}
 	
 	/** 
 	 * If key is associated, association is removed from table. 
 	 * If association does not exist, table is not modified.
-	 * In order to implement this operation, you should firstly locate
+	 * In order to implement this operation, ypu should firstly locate 
 	 * corresponding position (p) in table for key to be deleted, 
 	 * assign null to keys[p] and values[p], and remove from table 
 	 * and reinsert again all elements in same cluster (all elements 
 	 * in table after deleted one until finding an empty cell).
 	 */
 	public void delete(K key) {
-		int idx = searchIdx(key);
-		if(key.equals(keys[idx])){
-		    keys[idx] = null;
-		    values[idx] = null;
-		    idx++;
-		    int newIdx = searchIdx(keys[idx]);
+        int idx = searchIdx(key);
+        if(keys[idx] != null){
+            size--;
+            keys[idx] = null;
+            values[idx] = null;
+            idx = (idx + 1) % keys.length;
             while(keys[idx] != null){
-                if(newIdx < idx){
-                    K temp = keys[idx];
-                    V temp1 = values[idx];
-                    keys[idx] = null;
-                    insert(temp, temp1);
-                }
-                idx++;
+                size--;
+                K temp1 = keys[idx]; V temp2 = values[idx];
+                keys[idx] = null; values[idx] = null;
+                insert(temp1, temp2);
+                idx = (idx + 1) % keys.length;
             }
         }
 	}
@@ -180,11 +184,10 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 
 		// advance nextIdx to be index of next to be visited element
 		public void advance() {
-			// to be completed
-            if(hasNext()){
-                visited++;
+            do {
                 nextIdx++;
-            }
+            } while(keys[nextIdx] == null && (visited<size));
+            visited++;
 		}
 
 		public void remove() {
@@ -243,14 +246,14 @@ public class LinearProbingHashTable<K,V> implements HashTable<K,V>{
 	 */
 	public String toString() {
     String className = getClass().getName().substring(getClass().getPackage().getName().length()+1);  
-		StringBuilder s = new StringBuilder(className + "(");
+		String s = className+"(";
 			if(!isEmpty()) {
 			for(Tuple2<K,V> t : keysValues())
-				s.append(t._1()).append("->").append(t._2()).append(",");
-			s = new StringBuilder(s.substring(0, s.length() - 1));
+				s += t._1()+"->"+t._2()+",";
+			s = s.substring(0, s.length()-1);
 		}
-		s.append(")");
-	  return s.toString();
+		s += ")";
+	  return s;
 	}	
   
 }
