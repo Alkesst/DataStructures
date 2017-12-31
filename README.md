@@ -1,5 +1,5 @@
-# HaskellStuff
-Some haskell code I made in class
+# DataStructures
+Implementations of some Data Structures viewed in class.
 ## How to use
 ### Haskell
 Accessing the cloned repo:
